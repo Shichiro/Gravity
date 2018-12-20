@@ -121,6 +121,7 @@ function Creator.newThorn( params )
   body.fill.scaleX = PIX_IN_BLOCK / body.width;
   body.fill.scaleY = 1;
   body.anchorX, body.anchorY = 0, 1;
+  body.rotation = params.rotation;
   body:setFillColor( 0.9, 0.2, 0.2, 0.9 );
 
   -- добавить обьект в фрейм

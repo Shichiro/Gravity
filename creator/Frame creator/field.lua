@@ -15,204 +15,225 @@ local function visualizeFile()
 
   if file then
     local bytes = Serialization.stringBytes( file:read("*a") );
-    print(file:read("*a"))
     io.close( file );
     file = nil;
 
     speed = bytes[1];
-    print(speed)
-
+    size = bytes[2]*256 + bytes[3];
     local readed = 3; -- speed 1byte | size 2byte
-    local frame = 0;
+
+    print("--read--")
+
+    -- Расшифровка и создание первого блока
+    local num = bytes[readed+1]*65536 + bytes[readed+2]*256 + bytes[readed+3];
+    print("block")
+    print(num)
+
+    local nextId = (num % 3) + 1; num = math.floor(num / 3);
+    print(num)
+    local h = (num % 15) + 1; num = math.floor(num / 15);
+    print(num)
+    local w = (num % 32) + 1; num = math.floor(num / 32);
+    print(num)
+    local ypos = num % 15; num = math.floor(num / 15);
+    print(num)
+    local xpos = num;
+    print(num)
+    create.newBlock( { x = xpos, y = ypos, width = w, height = h } );
+    print("")
+
+    readed = readed + 3;
 
     while readed < #bytes do
-      -- frame header
-      local Objects, thorns, asps = bytes[readed + 1], bytes[readed + 2], bytes[readed + 3];
-      readed = readed + 3;
+      if nextId == 1 then
+        -- Расшифровка и создание блока
+        num = bytes[readed+1]*65536 + bytes[readed+2]*256 + bytes[readed+3];
+        print("block")
+        print(num)
 
-      -- read Objects
-      for i = 1, blocks do
-        if bytes[readed + 1] and bytes[readed + 2] and bytes[readed + 3] and bytes[readed + 4] and bytes[readed + 5] then
-          create.newBlock( { x = (frame * 32) + bytes[readed + 1], y = bytes[readed + 2], width = bytes[readed + 3], height = bytes[readed + 4] } );
-          readed = readed + 5;
-        end;
+        nextId = (num % 3) + 1;
+        num = math.floor(num / 3);
+
+        local h = (num % 15) + 1;
+        num = math.floor(num / 15);
+
+        local w = (num % 32) + 1;
+        num = math.floor(num / 32);
+
+        local ypos = num % 15;
+        num = math.floor(num / 15);
+
+        xpos = num + xpos;
+        create.newBlock( { x = xpos, y = ypos, width = w, height = h } );
+        print("")
+
+        readed = readed + 3;
+
+      elseif nextId == 2 then
+        -- Расшифровка и создание шипа
+        num = bytes[readed+1]*256 + bytes[readed+2];
+
+        print("thorn")
+        print(num)
+
+        nextId = (num % 3) + 1;
+        num = math.floor(num / 3);
+
+        local rotation = ((num % 4) - 1) * 90;
+        num = math.floor(num / 4);
+
+        local w = (num % 10) + 1;
+        num = math.floor(num / 10);
+
+        local ypos = num % 15;
+        num = math.floor(num / 15);
+
+        xpos = num + xpos;
+        create.newThorn( { x = xpos, y = ypos, width = w, rotation = rotation } );
+        print(" ")
+
+        readed = readed + 2;
+
+      elseif nextId == 3 then
+        print("ASP")
+        -- Расшифровка и создание ASP
+        num = bytes[readed+1]*256 + bytes[readed+2];
+
+        nextId = (num % 3) + 1;
+        num = math.floor(num / 3);
+
+        local add = (num % 30) + 1;
+        num = math.floor(num / 30);
+
+        local ypos = num % 15;
+        num = math.floor(num / 15);
+
+        xpos = num + xpos;
+        create.newAddSkorePoint( { x = xpos, y = ypos, add = add } );
+        print("")
+
+        readed = readed + 2;
       end;
-
-      -- read thorns
-      for i = 1, thorns do
-        if bytes[readed + 1] and bytes[readed + 2] and bytes[readed + 3] and bytes[readed + 4] then
-          create.newThorn( { x = (frame * 32) + bytes[readed + 1], y = bytes[readed + 2], width = bytes[readed + 3] } );
-          readed = readed + 4;
-        end;
-      end;
-
-      -- read ASPs
-      for i = 1, asps do
-        if bytes[readed + 1] and bytes[readed + 2] and bytes[readed + 3] then
-          create.newAddSkorePoint( { x = (frame * 32) + bytes[readed + 1], y = bytes[readed + 2], add = bytes[readed + 3] } );
-          readed = readed + 3;
-        end;
-      end;
-
-      frame = frame + 1;
     end;
-
-    bytes = nil;
   end;
+
+  bytes = nil;
 end;
 
 function saveToFile()
   file = io.open( system.pathForFile( path_to_file, system.DocumentsDirectory ), "w");
 
-  print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-
-  local sort_objects = {};
-  local size = 0;
-
-
-  -- сортировка
-  for i = 1, #Blocks do
-    local xpos = ( Blocks[i].x - tline.x ) / PIX_IN_BLOCK;
-    local ypos = Blocks[i].y / PIX_IN_BLOCK;
-    local w = Blocks[i].width / PIX_IN_BLOCK;
-    local h = Blocks[i].height / PIX_IN_BLOCK;
-
-    if xpos >= 0 and xpos < 0 and ypos < 15 and ypos >= 0 and w < 32 and w > 0 and h < 10 and h > 0 then
-        size = xpos + w;
-    else
-      print( "\nsaving err: block out of" );
-      if xpos < 0 then
-        print( "xpos = " .. xpos );
-      end;
-      if ypos > 256 or ypos <= 0 then
-        print( "ypos = " .. ypos );
-      end;
-      if w > 256 or w < 0 then
-        print( "w    = " .. w );
-      end;
-      if h > 256 or h < 0 then
-        print( "h    = " .. h );
-      end;
-    end;
+  -- сортировкао обьектов по X
+  local function compare( a, b )
+    return ( a.x - tline.x ) / PIX_IN_BLOCK < ( b.x - tline.x ) / PIX_IN_BLOCK;
   end;
+  table.sort( Objects, compare );
 
-  for i = 1, #Thorns do
-    local xpos = ( Thorns[i].x - tline.x ) / PIX_IN_BLOCK;
-    local ypos = Thorns[i].y / PIX_IN_BLOCK;
-    local w = Thorns[i].width / PIX_IN_BLOCK;
-
-    if xpos >= 0 and ypos < 256 and ypos >= 0 and w < 256 and w > 0 then
-      if not frames[math.floor( xpos / 32 ) + 1] then
-        frames[math.floor( xpos / 32 ) + 1] = { blocks = {}, thorns = {}, asps = {} };
-      end;
-      frames[math.floor( xpos / 32 ) + 1].thorns[#frames[math.floor( xpos / 32 ) + 1].thorns + 1] = Thorns[i];
-    else
-      print( "\nsaving err: thorn out of" );
-      if xpos < 0 then
-        print( "xpos = " .. xpos );
-      end;
-      if ypos > 256 or ypos <= 0 then
-        print( "ypos = " .. ypos );
-      end;
-      if w > 256 or w < 0 then
-        print( "w    = " .. w );
-      end;
-    end;
-  end;
-
-  for i = 1, #ASPs do
-    local xpos = ( ( ASPs[i].x - tline.x ) - ( ( ASPs[i].x - tline.x ) % PIX_IN_BLOCK)) / PIX_IN_BLOCK;
-    local ypos = ( ASPs[i].y - ( ASPs[i].y % PIX_IN_BLOCK)) / PIX_IN_BLOCK;
-
-    if xpos >= 0 and ypos < 256 and ypos >= 0 and ASPs[i].add < 255 and ASPs[i].add > 0 then
-      if not frames[math.floor( xpos / 32 ) + 1] then
-        frames[math.floor( xpos / 32 ) + 1] = { blocks = {}, thorns = {}, asps = {} };
-      end;
-      frames[math.floor( xpos / 32 ) + 1].asps[#frames[math.floor( xpos / 32 ) + 1].asps + 1] = ASPs[i];
-    else
-      print( "\nsaving err: ASP out of" );
-      if xpos < 0 then
-        print( "xpos = " .. xpos );
-      end;
-      if ypos > 256 or ypos <= 0 then
-        print( "ypos = " .. ypos );
-      end;
-      if ASPs[i].add > 255 or ASPs[i].add < 0 then
-        print( "add = " .. ASPs[i].add );
-      end;
-    end;
-  end;
-
-  -- запись
-  local content = string.char( speed ) .. string.char( math.floor( size / 255 ) ) .. string.char( size % 255 );
-  for frame_num = 1, #frames do
-    -- frame header
-    content = content .. string.char( #frames[frame_num].blocks ) .. string.char( #frames[frame_num].thorns ) .. string.char( #frames[frame_num].asps );
-
-    -- blocks
-    for i = 1, #frames[frame_num].blocks do
-      content = content .. string.char( (( frames[frame_num].blocks[i].x - tline.x ) / PIX_IN_BLOCK) % 32 );
-      content = content .. string.char( frames[frame_num].blocks[i].y / PIX_IN_BLOCK );
-      content = content .. string.char( frames[frame_num].blocks[i].width / PIX_IN_BLOCK );
-      content = content .. string.char( frames[frame_num].blocks[i].height / PIX_IN_BLOCK );
-    end;
-
-    -- thorns
-    for i = 1, #frames[frame_num].thorns do
-      content = content .. string.char( (( frames[frame_num].thorns[i].x - tline.x ) / PIX_IN_BLOCK) % 32 );
-      content = content .. string.char( frames[frame_num].thorns[i].y / PIX_IN_BLOCK );
-      content = content .. string.char( frames[frame_num].thorns[i].width / PIX_IN_BLOCK );
-    end;
-
-    -- asps
-    for i = 1, #frames[frame_num].asps do
-      content = content .. string.char( (( ( frames[frame_num].asps[i].x - tline.x ) - ( ( frames[frame_num].asps[i].x - tline.x ) % PIX_IN_BLOCK)) / PIX_IN_BLOCK ) % 32 );
-      content = content .. string.char( ( frames[frame_num].asps[i].y - ( frames[frame_num].asps[i].y % PIX_IN_BLOCK)) / PIX_IN_BLOCK );
-      content = content .. string.char( frames[frame_num].asps[i].add );
-    end;
-  end;
-
-  print( "\nSaved: " .. tostring( #content ) .. " bytes");
-
-  file:write( content );
-
-  io.close( file );
-  file = nil;
-  content = nil;
-  frames = nil;
-end;
-
-function saveToFile()
-  file = io.open( system.pathForFile( path_to_file, system.DocumentsDirectory ), "w");
-
-  print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-
-  -- сортировка по X
-  while
-  for i = 1, #Objects do
-    local xpos = ( Objects[i].x - tline.x ) / PIX_IN_BLOCK;
-
-
-  end;
-
-  -- первые три байта: speed 2 | size 1
+  -- header : speed 1 byte | size 2 bytes
   local size = ( ( Objects[#Objects].x - tline.x ) / PIX_IN_BLOCK ) + ( Objects[#Objects].height / PIX_IN_BLOCK ); -- длинна (в блоках) карты
-  content = string.char( speed ) .. string.char( math.floor( size / 255 ) ) .. string.char( size % 255 );
+  file:write( string.char( speed ) .. string.char( math.floor( size / 256 ) ) .. string.char( size % 256 ) );
 
-  -- запись в фаил
+  print("--write--")
+  -- запись обьектов в очереди
   for i = 1, #Objects do
-     file:write( content );
+    Objects[i].i = i;
+    if Objects[i].type == 1 then
+      print("block")
+      num = 0;
+      -- x
+      if Objects[i-1] then
+        num = math.floor(( Objects[i].x - tline.x ) / PIX_IN_BLOCK) - math.floor(( Objects[i-1].x - tline.x ) / PIX_IN_BLOCK);
+      else
+        num = math.floor(( Objects[i].x - tline.x ) / PIX_IN_BLOCK);
+      end;
+
+      -- y
+      num = num*15 + math.floor( Objects[i].y / PIX_IN_BLOCK );
+
+      -- w
+      num = num*32 + math.floor((Objects[i].width / PIX_IN_BLOCK) - 1);
+
+      -- h
+      num = num*15 + math.floor((Objects[i].height / PIX_IN_BLOCK) - 1);
+
+      -- id
+      if Objects[i+1] then
+        num = num*3 + (Objects[i+1].type - 1);
+      else
+        num = num*3 + (Objects[i].type - 1);
+      end;
+      print("")
+
+      -- write
+      file:write( string.char( math.floor(num / 65536) ) .. string.char( math.floor(num / 256) % 256 ) .. string.char( num % 256) );
+
+    elseif Objects[i].type == 2 then
+      print("thorn")
+      num = 0;
+      -- x
+      if Objects[i-1] then
+        num = math.floor(( Objects[i].x - tline.x ) / PIX_IN_BLOCK) - math.floor(( Objects[i-1].x - tline.x ) / PIX_IN_BLOCK);
+      else
+        num = math.floor(( Objects[i].x - tline.x ) / PIX_IN_BLOCK);
+      end;
+
+      -- y
+      num = num*15 + math.floor( Objects[i].y / PIX_IN_BLOCK );
+
+      -- w
+      num = num*10 + math.floor((Objects[i].width / PIX_IN_BLOCK) - 1);
+
+      -- rotation
+      num = num*4 + math.floor((Objects[i].rotation + 90) / 90);
+
+      -- id
+      if Objects[i+1] then
+        num = num*3 + (Objects[i+1].type - 1);
+      else
+        num = num*3 + (Objects[i].type - 1);
+      end;
+      print("")
+
+      -- write
+      file:write( string.char( math.floor(num / 256) ) .. string.char( num % 256 ) );
+
+    elseif Objects[i].type == 3 then
+      num = 0;
+      print("asp")
+      -- x
+      if Objects[i-1] then
+        num = math.floor(( Objects[i].x - tline.x ) / PIX_IN_BLOCK) - math.floor(( Objects[i-1].x - tline.x ) / PIX_IN_BLOCK);
+      else
+        num = math.floor(( Objects[i].x - tline.x ) / PIX_IN_BLOCK);
+      end;
+
+      -- y
+      num = num*15 + math.floor(Objects[i].y / PIX_IN_BLOCK);
+
+      -- add
+      num = num*30 + (Objects[i].add - 1);
+
+      -- id
+      if Objects[i+1] then
+        num = num*3 + (Objects[i+1].type - 1);
+      else
+        num = num*3 + (Objects[i].type - 1);
+      end;
+      print("")
+
+      -- write
+      file:write( string.char( num / 256 ) .. string.char( num % 256 ) );
+    end;
   end;
 
   io.close( file );
   file = nil;
-  content = nil;
 end;
 
 local function keyListener( event )
   if event.phase == "down" then
     if event.keyName == "1" then
-      create.newBlock( Objects, { x = 6, y = 6, width = 1, height = 1 } );
+      create.newBlock( { x = 6, y = 6, width = 1, height = 1 } );
 
     elseif event.keyName == "2" and not input.isVisible then
      create_thorn = true;
@@ -247,8 +268,25 @@ local function keyListener( event )
         input.isVisible = true;
       end;
 
-    elseif event.keyName == "r" then
-      can_rotate = true;
+    elseif event.keyName == "up" then
+      if cur_object.type == 2 then
+        cur_object.rotation = 0;
+      end;
+
+    elseif event.keyName == "down" then
+      if cur_object.type == 2 then
+        cur_object.rotation = 180;
+      end;
+
+    elseif event.keyName == "left" then
+      if cur_object.type == 2 then
+        cur_object.rotation = -90;
+      end;
+
+    elseif event.keyName == "right" then
+      if cur_object.type == 2 then
+        cur_object.rotation = 90;
+      end;
 
     elseif event.keyName == "deleteBack" or event.keyName == "deleteForward" and cur_object then
       table.remove( Objects, cur_object.i );

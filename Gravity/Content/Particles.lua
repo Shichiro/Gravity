@@ -7,7 +7,7 @@ local function createParticle()
   local particle = display.newCircle(
     math.random( display.screenOriginX, DISPLAY_WIDTH ),
     math.random( display.screenOriginY, DISPLAY_HEIGHT ),
-    1.8
+    2
   );
   particle:setFillColor( 0.7, 0.8, 0.9, 0.8 );
   particle.yForse = math.random( 8, 10 ) * 0.1;

@@ -65,10 +65,10 @@ function lis2( event )
       speed = tonumber( event.target.text );
 
     elseif create_thorn == false then
-      create.newAddSkorePoint( Objects, { x = 6, y = 4, add = tonumber( event.target.text ) } );
+      create.newAddSkorePoint( { x = 6, y = 4, add = tonumber( event.target.text ) } );
 
     else
-      create.newThorn( Objects, { x = 7, y = 5, width = tonumber( event.target.text ), direction = 1 } );
+      create.newThorn( { x = 7, y = 5, width = tonumber( event.target.text ), rotation = 0 } );
       create_thorn = false;
     end;
     event.target.isVisible = false;

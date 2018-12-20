@@ -29,6 +29,7 @@ local plaing = false;
 local cur_stage = 1;
 local mov_t;
 local save_speed = 0;
+local inResultsMenu = false;
 Engine.max_speed = 1;
 Engine.moving_speed = 0;
 
@@ -139,50 +140,54 @@ function Engine.continueGame()
 end;
 
 local function openResultsMenu()
-  Map.hide();
-  Physics.pause();
+  if not inResultsMenu then
+    inResultsMenu = true;
+    Map.hide();
+    GameHUD:hide();
+    Physics.pause();
 
-  local persents = Map:getPersents();
-  local record, rtype = Stages_menu.stages[cur_stage]:getInfo();
+    local persents = Map:getPersents();
+    local record, rtype = Stages_menu.stages[cur_stage]:getInfo();
 
-  -- выход в меню с проверкой побитого рекорда
-  if GameHUD.skore > 0 then
-    -- определение заголовка и текста меню
-    if rtype == "%" then
-      Menu:show( "STAGE PASSED", "- " .. tostring( GameHUD.skore ) .. "x -" );
-      Stages_menu:saveStageInfo( cur_stage, tostring( GameHUD.skore ) .. "x" );
-      Stages_menu:saveStageInfo( cur_stage + 1, "0%" );
-
-    elseif rtype == "x" then
-      if GameHUD.skore > record then
-        Menu:show( "NEW RECORD!", "- " .. tostring( GameHUD.skore ) .. "x -" );
-        Stages_menu:saveStageInfo( cur_stage, tostring( GameHUD.skore ) .. "x" );
-      else
+    -- выход в меню с проверкой побитого рекорда
+    if GameHUD.skore > 0 then
+      -- определение заголовка и текста меню
+      if rtype == "%" then
         Menu:show( "STAGE PASSED", "- " .. tostring( GameHUD.skore ) .. "x -" );
-      end;
-    end;
-  else
-    -- определение заголовка и текста меню
-    if rtype == "%" then
-      if persents > record then
-        Menu:show( "NEW RECORD!", "- " .. tostring( persents ) .. "% -" );
-        Stages_menu:saveStageInfo( cur_stage, tostring( persents ) .. "%" );
+        Stages_menu:saveStageInfo( cur_stage, tostring( GameHUD.skore ) .. "x" );
+        Stages_menu:saveStageInfo( cur_stage + 1, "0%" );
 
-      else
+      elseif rtype == "x" then
+        if GameHUD.skore > record then
+          Menu:show( "NEW RECORD!", "- " .. tostring( GameHUD.skore ) .. "x -" );
+          Stages_menu:saveStageInfo( cur_stage, tostring( GameHUD.skore ) .. "x" );
+        else
+          Menu:show( "STAGE PASSED", "- " .. tostring( GameHUD.skore ) .. "x -" );
+        end;
+      end;
+    else
+      -- определение заголовка и текста меню
+      if rtype == "%" then
+        if persents > record then
+          Menu:show( "NEW RECORD!", "- " .. tostring( persents ) .. "% -" );
+          Stages_menu:saveStageInfo( cur_stage, tostring( persents ) .. "%" );
+
+        else
+          Menu:show( "GAME OVER", "- " .. tostring( persents ) .. "% -" );
+        end;
+
+      elseif rtype == "x" then
         Menu:show( "GAME OVER", "- " .. tostring( persents ) .. "% -" );
       end;
-
-    elseif rtype == "x" then
-      Menu:show( "GAME OVER", "- " .. tostring( persents ) .. "% -" );
     end;
-  end;
+  end
 end;
 
 function Engine.gameOver()
   if plaing then
-    GameHUD:hide();
     GameHUD.skore = 0;
     Pause:hide();
+    GameHUD:pause();
     Player:exxxplosion();
     Particles:continue();
 
@@ -196,10 +201,10 @@ end;
 
 function Engine.stagePassed()
   if plaing then
-    GameHUD:hide();
     Pause:hide();
     Player:hide();
     Particles:continue();
+    GameHUD:pause();
 
     stopMovement();
 
@@ -210,12 +215,16 @@ function Engine.stagePassed()
 end;
 
 function Engine.openStagesMenu()
-  Map.hide();
-  Menu:hide();
+  if inResultsMenu then
+    inResultsMenu = false;
 
-  audio.play( buttonpressSound );
+    Menu:hide();
+    Map.hide();
 
-  Stages_menu:show();
+    audio.play( buttonpressSound );
+
+    Stages_menu:show();
+  end;
 end;
 
 function Engine.addSkore( add )
@@ -230,8 +239,8 @@ end;
 local function helloGame()
   -- Обьекты
   local title = display.newText({
-    text = "GRAVITY FORSE",
-    font = "Content/Fonts/1",
+    text = "GRAVITY FORCE",
+    font = "Content/Fonts/1.TTF",
     fontSize = 93
   });
   title.x = display.contentCenterX;

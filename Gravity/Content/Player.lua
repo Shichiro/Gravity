@@ -23,11 +23,11 @@ local tailmesh = display.newMesh(
 );
 tailmesh:translate( tailmesh.path:getVertexOffset() );
 tailmesh.fill = { type = "image", filename = "Content/Textures/tail.png" };
-tailmesh:setFillColor( 1, 0.1, 0.25 );
+tailmesh:setFillColor( 1, 0.0, 0.1 );
 
 local body = display.newImage( "Content/Textures/player body.png" );
 body.width, body.height = bodyRadius * 2, bodyRadius * 2;
-body:setFillColor( 0.8, 0.2, 0.2 );
+body:setFillColor( 0.9, 0.1, 0.2 );
 
 Player:insert( tailmesh );
 Player:insert( body );
@@ -35,7 +35,7 @@ Player:insert( body );
 -- Текст отображения добавленного счёта
 local add_label = display.newText({
   text = "+ 0",
-  font = "Content/Fonts/1",
+  font = "Content/Fonts/1.TTF",
   fontSize = 32
 });
 add_label.anchorX, add_label.anchorY = 0, 0;

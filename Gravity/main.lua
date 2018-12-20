@@ -13,11 +13,9 @@ DISPLAY_HEIGHT = display.actualContentHeight + display.screenOriginY;
 DISPLAY_WIDTH = display.actualContentWidth + display.screenOriginX;
 
 -- transition options
-standart_tro = { time = 500, transition = easing.outQuad }; --  ( Blackout, HUD, Player )
+standart_tro = { time = 300, transition = easing.outQuad }; --  ( Blackout, HUD, Player )
 short_tro = { time = 300, transition = easing.outQuad }; -- ( Pause, Terrain, Stages menu, Menu )
 long_tro = { time = 1000, transition = easing.outQuad }; -- ( Background, Menu.title )
 
 -- Подключаем движок...
 require "Engine";
-
-print(standart_tro.time)

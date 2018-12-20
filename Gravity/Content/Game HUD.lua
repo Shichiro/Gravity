@@ -49,7 +49,7 @@ timer.performWithDelay( 50, minusOne, -1 );
 -- Обьекты
 skore_label = display.newText({
   text = "0",
-  font = "Content/Fonts/1",
+  font = "Content/Fonts/1.TTF",
   fontSize = 40
 });
 skore_label.x = display.contentCenterX;

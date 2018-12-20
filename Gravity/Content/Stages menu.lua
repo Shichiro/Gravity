@@ -10,6 +10,18 @@ local last_end_pos = 150;
 local pos = 0;
 local tpos = -1;
 local backanimation = false;
+local deltaX = 0;
+
+-- Инерция после отпускания
+local function enercia()
+  if deltaX > 2 then
+    deltaX = deltaX - 2;
+
+  elseif deltaX < -2 then
+    deltaX = deltaX + 2;
+  end;
+end;
+timer.performWithDelay( 10, enercia, -1 );
 
 -- Лисенер по нажатию
 local function movlis( event )
@@ -47,7 +59,7 @@ local function movlis( event )
 end;
 
 local function ptlis( event )
-  if event.numTaps == 2 and event.target.alpha == 1 then
+  if event.target.alpha == 1 then
     if event.target:isOpen() then
       Engine.startGame( event.target:getStageId() );
     end;
@@ -99,7 +111,7 @@ local function newPoster( info )
   title = display.newText({
     parent = poster,
     text = "STAGE " .. #Stages_menu.stages + 1,
-    font = "Content/Fonts/1",
+    font = "Content/Fonts/1.TTF",
     fontSize = 60
   });
   title.x = background.x;
@@ -109,7 +121,7 @@ local function newPoster( info )
   text = display.newText({
     parent = poster,
     text = "- NOT OPEN -",
-    font = "Content/Fonts/1",
+    font = "Content/Fonts/1.TTF",
     fontSize = 30
   });
   text.x = background.x;
